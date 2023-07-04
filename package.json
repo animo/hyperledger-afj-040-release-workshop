@@ -1,0 +1,37 @@
+{
+  "name": "hyperledger-afj-040-release-workshop",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "repository": "git@github.com:animo/hyperledger-afj-040-release-workshop.git",
+  "author": "Animo Solutions <contact@animo.id>",
+  "scripts": {
+    "issuer": "ts-node src/issuer.ts",
+    "holder": "ts-node src/holder.ts",
+    "verifier": "ts-node src/verifier.ts"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/indy-sdk": "1.16.26",
+    "@types/node": "20.3.3",
+    "ts-node": "10.9.1",
+    "typescript": "5.1.6"
+  },
+  "dependencies": {
+    "@aries-framework/anoncreds": "0.4.0",
+    "@aries-framework/anoncreds-rs": "0.4.0",
+    "@aries-framework/askar": "0.4.0",
+    "@aries-framework/core": "0.4.0",
+    "@aries-framework/indy-sdk": "0.4.0",
+    "@aries-framework/indy-sdk-to-askar-migration": "0.4.0",
+    "@aries-framework/indy-vdr": "0.4.0",
+    "@aries-framework/node": "0.4.0",
+    "@aries-framework/openid4vc-client": "0.4.0",
+    "@hyperledger/anoncreds-nodejs": "0.1.0",
+    "@hyperledger/aries-askar-nodejs": "0.1.0",
+    "@hyperledger/indy-vdr-nodejs": "0.1.0",
+    "indy-sdk": "1.16.0-dev-1655"
+  },
+  "resolutions": {
+    "ref-napi": "npm:@2060.io/ref-napi"
+  }
+}
