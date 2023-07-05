@@ -1,22 +1,27 @@
 import {
   Agent,
   ConnectionsModule,
+  CredentialsModule,
   HttpOutboundTransport,
   InitConfig,
   LogLevel,
+  V2CredentialProtocol,
+  W3cCredentialsModule,
+  W3cJwtCredentialService,
   WsOutboundTransport,
 } from "@aries-framework/core"
-import { IndySdkModule } from "@aries-framework/indy-sdk"
 import { HttpInboundTransport, agentDependencies } from "@aries-framework/node"
 import { AskarModule } from "@aries-framework/askar"
 import {
   IndyVdrAnonCredsRegistry,
   IndyVdrModule,
 } from "@aries-framework/indy-vdr"
-import { AnonCredsModule } from "@aries-framework/anoncreds"
+import {
+  AnonCredsCredentialFormatService,
+  AnonCredsModule,
+  LegacyIndyCredentialFormatService,
+} from "@aries-framework/anoncreds"
 import { AnonCredsRsModule } from "@aries-framework/anoncreds-rs"
-
-import indySdk from "indy-sdk"
 
 import { ariesAskar } from "@hyperledger/aries-askar-nodejs"
 import { indyVdr } from "@hyperledger/indy-vdr-nodejs"
@@ -25,25 +30,17 @@ import { anoncreds } from "@hyperledger/anoncreds-nodejs"
 import { bcorvinTestNetwork } from "../constants"
 import { NamedConsoleLogger } from "../utils"
 
-const name = "holder"
+const name = "issuer"
 const config: InitConfig = {
   label: name,
-  logger: new NamedConsoleLogger(LogLevel.trace, name, "green"),
+  logger: new NamedConsoleLogger(LogLevel.trace, name, "cyan"),
   walletConfig: {
-    id: "hyperledger-afj-040-release-workshop-holder",
+    id: "hyperledger-afj-040-release-workshop-issuer",
     key: "insecure-secret",
   },
 }
 
-const indySdkModules = {
-  indySdk: new IndySdkModule({
-    indySdk,
-    networks: [bcorvinTestNetwork],
-  }),
-  connections: new ConnectionsModule({ autoAcceptConnections: true }),
-}
-
-const sharedComponentsModules = {
+const modules = {
   askar: new AskarModule({ ariesAskar }),
   connections: new ConnectionsModule({ autoAcceptConnections: true }),
   indyVdr: new IndyVdrModule({ indyVdr, networks: [bcorvinTestNetwork] }),
@@ -55,22 +52,15 @@ const sharedComponentsModules = {
   }),
 }
 
-export const indySdkholder = new Agent<typeof indySdkModules>({
+type SharedComponentsModules = typeof modules
+export const sharedComponentsIssuer = new Agent<SharedComponentsModules>({
   config,
-  modules: indySdkModules,
+  modules,
   dependencies: agentDependencies,
 })
 
-export const sharedComponentsHolder = new Agent<typeof sharedComponentsModules>(
-  {
-    config,
-    modules: sharedComponentsModules,
-    dependencies: agentDependencies,
-  }
-)
-
-sharedComponentsHolder.registerOutboundTransport(new HttpOutboundTransport())
-sharedComponentsHolder.registerOutboundTransport(new WsOutboundTransport())
-sharedComponentsHolder.registerInboundTransport(
-  new HttpInboundTransport({ port: 3002 })
+sharedComponentsIssuer.registerOutboundTransport(new HttpOutboundTransport())
+sharedComponentsIssuer.registerOutboundTransport(new WsOutboundTransport())
+sharedComponentsIssuer.registerInboundTransport(
+  new HttpInboundTransport({ port: 3001 })
 )

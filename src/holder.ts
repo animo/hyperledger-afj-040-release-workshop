@@ -15,16 +15,19 @@ const cleanUtil = () => {
   } catch (e) {}
 }
 
-export const main = async () => {
+export const migrationSection = async () => {
   cleanUtil()
   const indySdkDbPath = `${homedir()}/.indy_client/wallet/${
     indySdkholder.config.walletConfig?.id
   }/sqlite.db`
 
   await indySdkholder.initialize()
+
+  // ==== CREATE SOME CODE THAT ALLOWS FOR MIGRATABLE RECORDS
   const { id } = await indySdkholder.genericRecords.save({
     content: { foo: "bar" },
   })
+  // ========================================================
 
   await indySdkholder.shutdown()
 
@@ -36,13 +39,15 @@ export const main = async () => {
   await updater.update()
 
   await sharedComponentsHolder.initialize()
-  const record = await sharedComponentsHolder.genericRecords.findById(id)
 
+  // ==== USE THE MIGRATED RECORDS =========================
+  const record = await sharedComponentsHolder.genericRecords.findById(id)
   console.log(record?.content)
+  // =======================================================
 
   await sharedComponentsHolder.shutdown()
 
   exit(0)
 }
 
-void main()
+void migrationSection()
