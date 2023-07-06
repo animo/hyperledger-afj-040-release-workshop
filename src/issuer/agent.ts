@@ -3,10 +3,9 @@ import {
   AutoAcceptCredential,
   ConnectionsModule,
   CredentialsModule,
+  DidsModule,
   HttpOutboundTransport,
   InitConfig,
-  JsonLdCredentialFormatService,
-  LogLevel,
   V2CredentialProtocol,
   WsOutboundTransport,
 } from "@aries-framework/core"
@@ -14,7 +13,20 @@ import { HttpInboundTransport, agentDependencies } from "@aries-framework/node"
 import { AskarModule } from "@aries-framework/askar"
 
 import { ariesAskar } from "@hyperledger/aries-askar-nodejs"
-import { NamedConsoleLogger } from "../utils"
+import {
+  AnonCredsCredentialFormatService,
+  AnonCredsModule,
+} from "@aries-framework/anoncreds"
+import {
+  IndyVdrAnonCredsRegistry,
+  IndyVdrIndyDidRegistrar,
+  IndyVdrIndyDidResolver,
+  IndyVdrModule,
+} from "@aries-framework/indy-vdr"
+import { anoncreds } from "@hyperledger/anoncreds-nodejs"
+import { AnonCredsRsModule } from "@aries-framework/anoncreds-rs"
+import { indyVdr } from "@hyperledger/indy-vdr-nodejs"
+import { bcovrinTestNetwork } from "../constants"
 
 const name = "issuer"
 const config: InitConfig = {
@@ -29,12 +41,26 @@ const config: InitConfig = {
 
 const modules = {
   askar: new AskarModule({ ariesAskar }),
+  anoncreds: new AnonCredsModule({
+    registries: [new IndyVdrAnonCredsRegistry()],
+  }),
+  anoncredsRs: new AnonCredsRsModule({
+    anoncreds,
+  }),
+  dids: new DidsModule({
+    registrars: [new IndyVdrIndyDidRegistrar()],
+    resolvers: [new IndyVdrIndyDidResolver()],
+  }),
+  indyVdr: new IndyVdrModule({
+    indyVdr,
+    networks: [bcovrinTestNetwork],
+  }),
   connections: new ConnectionsModule({ autoAcceptConnections: true }),
   credentials: new CredentialsModule({
     autoAcceptCredentials: AutoAcceptCredential.Always,
     credentialProtocols: [
       new V2CredentialProtocol({
-        credentialFormats: [new JsonLdCredentialFormatService()],
+        credentialFormats: [new AnonCredsCredentialFormatService()],
       }),
     ],
   }),

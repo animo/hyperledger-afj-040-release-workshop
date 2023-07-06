@@ -1,30 +1,39 @@
 import {
   Agent,
+  AutoAcceptProof,
   ConnectionsModule,
+  DidsModule,
   HttpOutboundTransport,
   InitConfig,
   LogLevel,
+  ProofsModule,
+  V2ProofProtocol,
   WsOutboundTransport,
 } from "@aries-framework/core"
 import { HttpInboundTransport, agentDependencies } from "@aries-framework/node"
 import { AskarModule } from "@aries-framework/askar"
 import {
   IndyVdrAnonCredsRegistry,
+  IndyVdrIndyDidResolver,
   IndyVdrModule,
 } from "@aries-framework/indy-vdr"
-import { AnonCredsModule } from "@aries-framework/anoncreds"
+import {
+  AnonCredsModule,
+  AnonCredsProofFormatService,
+} from "@aries-framework/anoncreds"
 import { AnonCredsRsModule } from "@aries-framework/anoncreds-rs"
 
 import { ariesAskar } from "@hyperledger/aries-askar-nodejs"
 import { indyVdr } from "@hyperledger/indy-vdr-nodejs"
 import { anoncreds } from "@hyperledger/anoncreds-nodejs"
 
-import { bcorvinTestNetwork } from "../constants"
+import { bcovrinTestNetwork } from "../constants"
 import { NamedConsoleLogger } from "../utils"
 
 const name = "verifier"
 const config: InitConfig = {
   label: name,
+  endpoints: ["http://localhost:3010"],
   logger: new NamedConsoleLogger(LogLevel.trace, name, "green"),
   walletConfig: {
     id: "hyperledger-afj-040-release-workshop-verifier",
@@ -34,13 +43,27 @@ const config: InitConfig = {
 
 const modules = {
   askar: new AskarModule({ ariesAskar }),
-  connections: new ConnectionsModule({ autoAcceptConnections: true }),
-  indyVdr: new IndyVdrModule({ indyVdr, networks: [bcorvinTestNetwork] }),
   anoncreds: new AnonCredsModule({
     registries: [new IndyVdrAnonCredsRegistry()],
   }),
   anoncredsRs: new AnonCredsRsModule({
     anoncreds,
+  }),
+  dids: new DidsModule({
+    resolvers: [new IndyVdrIndyDidResolver()],
+  }),
+  indyVdr: new IndyVdrModule({
+    indyVdr,
+    networks: [bcovrinTestNetwork],
+  }),
+  connections: new ConnectionsModule({ autoAcceptConnections: true }),
+  proofs: new ProofsModule({
+    autoAcceptProofs: AutoAcceptProof.Always,
+    proofProtocols: [
+      new V2ProofProtocol({
+        proofFormats: [new AnonCredsProofFormatService()],
+      }),
+    ],
   }),
 }
 
@@ -54,5 +77,5 @@ export const sharedComponentsVerifier = new Agent<SharedComponentsModules>({
 sharedComponentsVerifier.registerOutboundTransport(new HttpOutboundTransport())
 sharedComponentsVerifier.registerOutboundTransport(new WsOutboundTransport())
 sharedComponentsVerifier.registerInboundTransport(
-  new HttpInboundTransport({ port: 3000 })
+  new HttpInboundTransport({ port: 3010 })
 )

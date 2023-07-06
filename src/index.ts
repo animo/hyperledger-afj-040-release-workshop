@@ -1,27 +1,42 @@
 import { indySdkHolder, sharedComponentsHolder } from "./holder/agent"
 import { issuer } from "./issuer/agent"
 import { exit } from "process"
-import { offerW3cJsonLdCredential } from "./issuer/offerW3cJsonLdCredential"
-import { createDidKeyEd25519 } from "./issuer/createDidJwk"
 import { createConnection } from "./createConnection"
 import { returnWhenCredentialInWallet } from "./utils/returnWhenCredentialInWallet"
 import { migrate } from "./issuer/migrate"
 import { cleanUpUtil } from "./utils/cleanUpDb"
+import { createAndRegisterDidIndy } from "./issuer/createAndRegisterDidIndy"
+import { offerAnoncredsCredential } from "./issuer/offerAnoncredsCredential"
+import { createAndRegisterSchema } from "./issuer/createAndRegisterSchema"
+import { createAndRegisterCredentialDefinintion } from "./issuer/createAndRegisterCredentialDefinition"
+import { createLinkSecret } from "./issuer/createLinkSecret"
+import { sharedComponentsVerifier } from "./verifier/agent"
+import { returnWhenProofShared } from "./utils/returnWhenProofShared"
 
 void (async () => {
   cleanUpUtil(sharedComponentsHolder)
 
   await indySdkHolder.initialize()
+
+  await createLinkSecret(indySdkHolder)
+
   await issuer.initialize()
 
   const connectionId = await createConnection(issuer, indySdkHolder)
 
-  const subjectDid = await createDidKeyEd25519(indySdkHolder)
-  const issuerDid = await createDidKeyEd25519(issuer)
+  const issuerDid = await createAndRegisterDidIndy(issuer)
 
-  await offerW3cJsonLdCredential(issuer, connectionId, issuerDid, subjectDid)
+  const schemaId = await createAndRegisterSchema(issuer, issuerDid)
 
-  const { id: credentialId } = await returnWhenCredentialInWallet(indySdkHolder)
+  const credentialDefinitionId = await createAndRegisterCredentialDefinintion(
+    issuer,
+    issuerDid,
+    schemaId
+  )
+
+  await offerAnoncredsCredential(issuer, connectionId, credentialDefinitionId)
+
+  await returnWhenCredentialInWallet(indySdkHolder)
 
   await indySdkHolder.shutdown()
 
@@ -29,11 +44,28 @@ void (async () => {
 
   await sharedComponentsHolder.initialize()
 
-  const credential = await sharedComponentsHolder.credentials.getById(
-    credentialId
+  await sharedComponentsVerifier.initialize()
+
+  const cid = await createConnection(
+    sharedComponentsVerifier,
+    sharedComponentsHolder
   )
 
-  console.log(credential)
+  await sharedComponentsVerifier.proofs.requestProof({
+    connectionId: cid,
+    protocolVersion: "v2",
+    proofFormats: {
+      anoncreds: {
+        requested_attributes: { group: { name: "a" } },
+        name: "My First Proof Request",
+        version: "1",
+      },
+    },
+  })
+
+  const proof = await returnWhenProofShared(sharedComponentsHolder)
+
+  console.log(proof)
 
   exit(0)
 })()
