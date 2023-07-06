@@ -1,5 +1,5 @@
 import { KeyType, TypedArrayEncoder } from "@aries-framework/core"
-import { Issuer } from "./agent"
+import { Issuer } from "../issuer"
 
 export const createAndRegisterDidIndy = async (issuer: Issuer) => {
   const seed = TypedArrayEncoder.fromString(`someseed000000000000000000000000`)

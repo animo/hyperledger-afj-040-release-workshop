@@ -13,11 +13,6 @@ export const returnWhenProofShared = (
     agent.events.on<ProofStateChangedEvent>(
       ProofEventTypes.ProofStateChanged,
       ({ payload }) => {
-        console.log(
-          "=======================",
-          payload.proofRecord.state,
-          "========================"
-        )
         if (payload.proofRecord.state === ProofState.Done)
           resolve(payload.proofRecord)
       }

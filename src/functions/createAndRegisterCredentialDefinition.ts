@@ -1,4 +1,4 @@
-import { Issuer } from "./agent"
+import { Issuer } from "../issuer"
 
 export const createAndRegisterCredentialDefinintion = async (
   issuer: Issuer,

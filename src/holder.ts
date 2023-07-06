@@ -1,53 +1,134 @@
-import { IndySdkToAskarMigrationUpdater } from "@aries-framework/indy-sdk-to-askar-migration"
-import { sharedComponentsHolder } from "./holder/agent"
-import { homedir } from "os"
-import { rmSync } from "fs"
-import { exit } from "process"
+import {
+  Agent,
+  AutoAcceptCredential,
+  AutoAcceptProof,
+  ConnectionsModule,
+  CredentialsModule,
+  DidsModule,
+  HttpOutboundTransport,
+  InitConfig,
+  LogLevel,
+  ProofsModule,
+  V2CredentialProtocol,
+  V2ProofProtocol,
+  WsOutboundTransport,
+} from "@aries-framework/core"
+import { IndySdkModule } from "@aries-framework/indy-sdk"
+import { HttpInboundTransport, agentDependencies } from "@aries-framework/node"
+import { AskarModule } from "@aries-framework/askar"
 
-const cleanUtil = () => {
-  try {
-    rmSync(
-      `${homedir()}/.afj/data/wallet/${
-        sharedComponentsHolder.config.walletConfig?.id
-      }`,
-      { force: true, recursive: true }
-    )
-  } catch (e) {}
+import indySdk from "indy-sdk"
+
+import { ariesAskar } from "@hyperledger/aries-askar-nodejs"
+import { NamedConsoleLogger } from "./utils"
+import {
+  AnonCredsCredentialFormatService,
+  AnonCredsModule,
+  AnonCredsProofFormatService,
+} from "@aries-framework/anoncreds"
+import {
+  IndyVdrAnonCredsRegistry,
+  IndyVdrIndyDidResolver,
+  IndyVdrModule,
+} from "@aries-framework/indy-vdr"
+import { AnonCredsRsModule } from "@aries-framework/anoncreds-rs"
+import { anoncreds } from "@hyperledger/anoncreds-nodejs"
+import { indyVdr } from "@hyperledger/indy-vdr-nodejs"
+import { bcovrinTestNetwork } from "./constants"
+
+const name = "holder"
+const config: InitConfig = {
+  label: name,
+  endpoints: ["http://localhost:3002"],
+  logger: new NamedConsoleLogger(LogLevel.debug, name, "green"),
+  walletConfig: {
+    id: "hyperledger-afj-040-release-workshop-holder",
+    key: "insecure-secret",
+  },
 }
 
-export const migrationSection = async () => {
-  cleanUtil()
-  const indySdkDbPath = `${homedir()}/.indy_client/wallet/${
-    indySdkholder.config.walletConfig?.id
-  }/sqlite.db`
-
-  await indySdkholder.initialize()
-
-  // ==== CREATE SOME CODE THAT ALLOWS FOR MIGRATABLE RECORDS
-  const { id } = await indySdkholder.genericRecords.save({
-    content: { foo: "bar" },
-  })
-  // ========================================================
-
-  await indySdkholder.shutdown()
-
-  const updater = await IndySdkToAskarMigrationUpdater.initialize({
-    dbPath: indySdkDbPath,
-    agent: sharedComponentsHolder,
-  })
-
-  await updater.update()
-
-  await sharedComponentsHolder.initialize()
-
-  // ==== USE THE MIGRATED RECORDS =========================
-  const record = await sharedComponentsHolder.genericRecords.findById(id)
-  console.log(record?.content)
-  // =======================================================
-
-  await sharedComponentsHolder.shutdown()
-
-  exit(0)
+const indySdkModules = {
+  indySdk: new IndySdkModule({ indySdk }),
+  anoncreds: new AnonCredsModule({
+    registries: [new IndyVdrAnonCredsRegistry()],
+  }),
+  anoncredsRs: new AnonCredsRsModule({
+    anoncreds,
+  }),
+  dids: new DidsModule({
+    resolvers: [new IndyVdrIndyDidResolver()],
+  }),
+  indyVdr: new IndyVdrModule({
+    indyVdr,
+    networks: [bcovrinTestNetwork],
+  }),
+  connections: new ConnectionsModule({ autoAcceptConnections: true }),
+  credentials: new CredentialsModule({
+    autoAcceptCredentials: AutoAcceptCredential.Always,
+    credentialProtocols: [
+      new V2CredentialProtocol({
+        credentialFormats: [new AnonCredsCredentialFormatService()],
+      }),
+    ],
+  }),
 }
 
-void migrationSection()
+const sharedComponentsModules = {
+  askar: new AskarModule({ ariesAskar }),
+  anoncreds: new AnonCredsModule({
+    registries: [new IndyVdrAnonCredsRegistry()],
+  }),
+  anoncredsRs: new AnonCredsRsModule({
+    anoncreds,
+  }),
+  dids: new DidsModule({
+    resolvers: [new IndyVdrIndyDidResolver()],
+  }),
+  indyVdr: new IndyVdrModule({
+    indyVdr,
+    networks: [bcovrinTestNetwork],
+  }),
+  connections: new ConnectionsModule({ autoAcceptConnections: true }),
+  credentials: new CredentialsModule({
+    autoAcceptCredentials: AutoAcceptCredential.Always,
+    credentialProtocols: [
+      new V2CredentialProtocol({
+        credentialFormats: [new AnonCredsCredentialFormatService()],
+      }),
+    ],
+  }),
+  proofs: new ProofsModule({
+    autoAcceptProofs: AutoAcceptProof.Always,
+    proofProtocols: [
+      new V2ProofProtocol({
+        proofFormats: [new AnonCredsProofFormatService()],
+      }),
+    ],
+  }),
+}
+
+export const indySdkHolder = new Agent<typeof indySdkModules>({
+  config,
+  modules: indySdkModules,
+  dependencies: agentDependencies,
+})
+
+export type Holder = typeof indySdkHolder
+
+export const sharedComponentsHolder = new Agent<typeof sharedComponentsModules>(
+  {
+    config,
+    modules: sharedComponentsModules,
+    dependencies: agentDependencies,
+  }
+)
+
+indySdkHolder.registerOutboundTransport(new HttpOutboundTransport())
+indySdkHolder.registerOutboundTransport(new WsOutboundTransport())
+indySdkHolder.registerInboundTransport(new HttpInboundTransport({ port: 3002 }))
+
+sharedComponentsHolder.registerOutboundTransport(new HttpOutboundTransport())
+sharedComponentsHolder.registerOutboundTransport(new WsOutboundTransport())
+sharedComponentsHolder.registerInboundTransport(
+  new HttpInboundTransport({ port: 3002 })
+)

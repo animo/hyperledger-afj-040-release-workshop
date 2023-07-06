@@ -1,5 +1,5 @@
 import { Agent } from "@aries-framework/core"
-import { returnWhenConnected } from "./utils"
+import { returnWhenConnected } from "../utils"
 
 export const createConnection = async (sender: Agent, recipient: Agent) => {
   const outOfBandRecord = await sender.oob.createInvitation()

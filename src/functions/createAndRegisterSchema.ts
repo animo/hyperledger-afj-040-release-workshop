@@ -1,4 +1,4 @@
-import { Issuer } from "./agent"
+import { Issuer } from "../issuer"
 
 export const createAndRegisterSchema = async (issuer: Issuer, did: string) => {
   const schemaResult = await issuer.modules.anoncreds.registerSchema({

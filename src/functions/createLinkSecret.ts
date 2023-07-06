@@ -1,4 +1,4 @@
-import { Holder } from "../holder/agent"
+import { Holder } from "../holder"
 
 export const createLinkSecret = async (holder: Holder) => {
   await holder.modules.anoncreds.createLinkSecret()

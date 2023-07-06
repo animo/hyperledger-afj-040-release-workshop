@@ -1,21 +1,28 @@
-import { indySdkHolder, sharedComponentsHolder } from "./holder/agent"
-import { issuer } from "./issuer/agent"
+import {
+  cleanUpDb,
+  returnWhenCredentialInWallet,
+  returnWhenProofShared,
+} from "./utils"
+
+import {
+  createAndRegisterCredentialDefinintion,
+  createAndRegisterDidIndy,
+  createAndRegisterSchema,
+  createConnection,
+  createLinkSecret,
+  offerAnoncredsCredential,
+  migrate,
+  requestAnoncredsProof,
+} from "./functions"
+
+import { indySdkHolder, sharedComponentsHolder } from "./holder"
+import { issuer } from "./issuer"
+import { verifier } from "./verifier"
 import { exit } from "process"
-import { createConnection } from "./createConnection"
-import { returnWhenCredentialInWallet } from "./utils/returnWhenCredentialInWallet"
-import { migrate } from "./issuer/migrate"
-import { cleanUpUtil } from "./utils/cleanUpDb"
-import { createAndRegisterDidIndy } from "./issuer/createAndRegisterDidIndy"
-import { offerAnoncredsCredential } from "./issuer/offerAnoncredsCredential"
-import { createAndRegisterSchema } from "./issuer/createAndRegisterSchema"
-import { createAndRegisterCredentialDefinintion } from "./issuer/createAndRegisterCredentialDefinition"
-import { createLinkSecret } from "./issuer/createLinkSecret"
-import { sharedComponentsVerifier } from "./verifier/agent"
-import { returnWhenProofShared } from "./utils/returnWhenProofShared"
+
+cleanUpDb(sharedComponentsHolder)
 
 void (async () => {
-  cleanUpUtil(sharedComponentsHolder)
-
   await indySdkHolder.initialize()
 
   await createLinkSecret(indySdkHolder)
@@ -44,24 +51,11 @@ void (async () => {
 
   await sharedComponentsHolder.initialize()
 
-  await sharedComponentsVerifier.initialize()
+  await verifier.initialize()
 
-  const cid = await createConnection(
-    sharedComponentsVerifier,
-    sharedComponentsHolder
-  )
+  const cid = await createConnection(verifier, sharedComponentsHolder)
 
-  await sharedComponentsVerifier.proofs.requestProof({
-    connectionId: cid,
-    protocolVersion: "v2",
-    proofFormats: {
-      anoncreds: {
-        requested_attributes: { group: { name: "a" } },
-        name: "My First Proof Request",
-        version: "1",
-      },
-    },
-  })
+  await requestAnoncredsProof(verifier, cid)
 
   const proof = await returnWhenProofShared(sharedComponentsHolder)
 

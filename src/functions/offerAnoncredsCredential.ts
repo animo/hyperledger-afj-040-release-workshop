@@ -1,4 +1,4 @@
-import { Issuer } from "./agent"
+import { Issuer } from "../issuer"
 
 export const offerAnoncredsCredential = async (
   issuer: Issuer,
