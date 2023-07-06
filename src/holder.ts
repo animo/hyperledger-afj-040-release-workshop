@@ -1,5 +1,5 @@
 import { IndySdkToAskarMigrationUpdater } from "@aries-framework/indy-sdk-to-askar-migration"
-import { indySdkholder, sharedComponentsHolder } from "./holder/agent"
+import { sharedComponentsHolder } from "./holder/agent"
 import { homedir } from "os"
 import { rmSync } from "fs"
 import { exit } from "process"

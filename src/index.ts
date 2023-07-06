@@ -1,71 +1,39 @@
-import {
-  ClaimFormat,
-  DidJwk,
-  JsonTransformer,
-  JwaSignatureAlgorithm,
-  JwsService,
-  KeyType,
-  TypedArrayEncoder,
-  W3cCredential,
-  W3cJwtCredentialService,
-  getJwkFromKey,
-} from "@aries-framework/core"
-import { indySdkholder } from "./holder/agent"
-import { sharedComponentsIssuer } from "./issuer/agent"
-import { returnWhenConnected } from "./utils"
+import { indySdkHolder, sharedComponentsHolder } from "./holder/agent"
+import { issuer } from "./issuer/agent"
 import { exit } from "process"
-import { createDidJwk } from "./issuer/createDid"
-import { createW3cJwtCredential } from "./issuer/createCredential"
-
-const Ed256DidJwkJwtVcUnsigned = {
-  "@context": ["https://www.w3.org/2018/credentials/v1"],
-  type: ["VerifiableCredential"],
-  issuer: {
-    id: "did:jwk:eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6InpRT293SUMxZ1dKdGRkZEI1R0F0NGxhdTZMdDhJaHk3NzFpQWZhbS0xcGMiLCJ5IjoiY2pEXzdvM2dkUTF2Z2lReTNfc01HczdXcndDTVU5RlFZaW1BM0h4bk1sdyJ9",
-    name: "me",
-  },
-  name: "some cred",
-  description: "haha",
-  issuanceDate: new Date().toISOString(),
-  credentialSubject: {
-    id: "did:key:z6MkqgkLrRyLg6bqk27djwbbaQWgaSYgFVCKq9YKxZbNkpVv",
-  },
-}
+import { offerW3cJsonLdCredential } from "./issuer/offerW3cJsonLdCredential"
+import { createDidKeyEd25519 } from "./issuer/createDidJwk"
+import { createConnection } from "./createConnection"
+import { returnWhenCredentialInWallet } from "./utils/returnWhenCredentialInWallet"
+import { migrate } from "./issuer/migrate"
+import { cleanUpUtil } from "./utils/cleanUpDb"
 
 void (async () => {
-  // Initialize the old holder agent
-  await indySdkholder.initialize()
+  cleanUpUtil(sharedComponentsHolder)
 
-  // Initialize the issuer
-  await sharedComponentsIssuer.initialize()
+  await indySdkHolder.initialize()
+  await issuer.initialize()
 
-  // const { outOfBandInvitation, id: outOfBandRecordId } =
-  //   await sharedComponentsIssuer.oob.createInvitation()
+  const connectionId = await createConnection(issuer, indySdkHolder)
 
-  // const listener = returnWhenConnected(
-  //   sharedComponentsIssuer,
-  //   outOfBandRecordId
-  // )
+  const subjectDid = await createDidKeyEd25519(indySdkHolder)
+  const issuerDid = await createDidKeyEd25519(issuer)
 
-  // await indySdkholder.oob.receiveInvitation(outOfBandInvitation)
+  await offerW3cJsonLdCredential(issuer, connectionId, issuerDid, subjectDid)
 
-  //const connectionId = await listener
+  const { id: credentialId } = await returnWhenCredentialInWallet(indySdkHolder)
 
-  //console.log(connectionId)
-  console.log("===============================")
+  await indySdkHolder.shutdown()
 
-  // ============
-  const subjectDid = "did:example:123"
-  const issuerDid = await createDidJwk(sharedComponentsIssuer)
-  const w3cVcJwt = await createW3cJwtCredential(
-    sharedComponentsIssuer,
-    issuerDid,
-    subjectDid
+  await migrate(indySdkHolder, sharedComponentsHolder)
+
+  await sharedComponentsHolder.initialize()
+
+  const credential = await sharedComponentsHolder.credentials.getById(
+    credentialId
   )
 
-  console.log(w3cVcJwt)
+  console.log(credential)
 
   exit(0)
-
-  // ==================
 })()

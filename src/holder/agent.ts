@@ -1,33 +1,28 @@
 import {
   Agent,
+  AutoAcceptCredential,
   ConnectionsModule,
+  CredentialsModule,
   HttpOutboundTransport,
   InitConfig,
+  JsonLdCredentialFormatService,
   LogLevel,
+  V2CredentialProtocol,
   WsOutboundTransport,
 } from "@aries-framework/core"
 import { IndySdkModule } from "@aries-framework/indy-sdk"
 import { HttpInboundTransport, agentDependencies } from "@aries-framework/node"
 import { AskarModule } from "@aries-framework/askar"
-import {
-  IndyVdrAnonCredsRegistry,
-  IndyVdrModule,
-} from "@aries-framework/indy-vdr"
-import { AnonCredsModule } from "@aries-framework/anoncreds"
-import { AnonCredsRsModule } from "@aries-framework/anoncreds-rs"
 
 import indySdk from "indy-sdk"
 
 import { ariesAskar } from "@hyperledger/aries-askar-nodejs"
-import { indyVdr } from "@hyperledger/indy-vdr-nodejs"
-import { anoncreds } from "@hyperledger/anoncreds-nodejs"
-
-import { bcorvinTestNetwork } from "../constants"
 import { NamedConsoleLogger } from "../utils"
 
 const name = "holder"
 const config: InitConfig = {
   label: name,
+  endpoints: ["http://localhost:3002"],
   logger: new NamedConsoleLogger(LogLevel.trace, name, "green"),
   walletConfig: {
     id: "hyperledger-afj-040-release-workshop-holder",
@@ -36,26 +31,32 @@ const config: InitConfig = {
 }
 
 const indySdkModules = {
-  indySdk: new IndySdkModule({
-    indySdk,
-    networks: [bcorvinTestNetwork],
-  }),
+  indySdk: new IndySdkModule({ indySdk }),
   connections: new ConnectionsModule({ autoAcceptConnections: true }),
+  credentials: new CredentialsModule({
+    autoAcceptCredentials: AutoAcceptCredential.Always,
+    credentialProtocols: [
+      new V2CredentialProtocol({
+        credentialFormats: [new JsonLdCredentialFormatService()],
+      }),
+    ],
+  }),
 }
 
 const sharedComponentsModules = {
   askar: new AskarModule({ ariesAskar }),
   connections: new ConnectionsModule({ autoAcceptConnections: true }),
-  indyVdr: new IndyVdrModule({ indyVdr, networks: [bcorvinTestNetwork] }),
-  anoncreds: new AnonCredsModule({
-    registries: [new IndyVdrAnonCredsRegistry()],
-  }),
-  anoncredsRs: new AnonCredsRsModule({
-    anoncreds,
+  credentials: new CredentialsModule({
+    autoAcceptCredentials: AutoAcceptCredential.Always,
+    credentialProtocols: [
+      new V2CredentialProtocol({
+        credentialFormats: [new JsonLdCredentialFormatService()],
+      }),
+    ],
   }),
 }
 
-export const indySdkholder = new Agent<typeof indySdkModules>({
+export const indySdkHolder = new Agent<typeof indySdkModules>({
   config,
   modules: indySdkModules,
   dependencies: agentDependencies,
@@ -68,6 +69,10 @@ export const sharedComponentsHolder = new Agent<typeof sharedComponentsModules>(
     dependencies: agentDependencies,
   }
 )
+
+indySdkHolder.registerOutboundTransport(new HttpOutboundTransport())
+indySdkHolder.registerOutboundTransport(new WsOutboundTransport())
+indySdkHolder.registerInboundTransport(new HttpInboundTransport({ port: 3002 }))
 
 sharedComponentsHolder.registerOutboundTransport(new HttpOutboundTransport())
 sharedComponentsHolder.registerOutboundTransport(new WsOutboundTransport())
