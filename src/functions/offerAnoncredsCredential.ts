@@ -1,4 +1,6 @@
 import { Issuer } from "../issuer"
+import { cyan, underscore } from "../utils"
+import { log } from "../utils/log"
 
 export const offerAnoncredsCredential = async (
   issuer: Issuer,
@@ -15,4 +17,11 @@ export const offerAnoncredsCredential = async (
       },
     },
   })
+
+  log(
+    `Offered ${underscore("Anoncreds")} credential: ${cyan(
+      issuer.config.label
+    )} -> ${underscore(connectionId)}`,
+    false
+  )
 }

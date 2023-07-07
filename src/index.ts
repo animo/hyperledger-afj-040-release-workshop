@@ -1,7 +1,9 @@
 import {
   cleanUpDb,
+  cyan,
   returnWhenCredentialInWallet,
   returnWhenProofShared,
+  yellow,
 } from "./utils"
 
 import {
@@ -19,14 +21,19 @@ import { indySdkHolder, sharedComponentsHolder } from "./holder"
 import { issuer } from "./issuer"
 import { verifier } from "./verifier"
 import { exit } from "process"
+import { log } from "./utils/log"
 
 cleanUpDb(sharedComponentsHolder)
 
 void (async () => {
+  await log("Hyperledger AFJ v0.4.0 Demo")
+
+  await log(`Initializing ${cyan(indySdkHolder.config.label)}...`)
   await indySdkHolder.initialize()
 
   await createLinkSecret(indySdkHolder)
 
+  await log(`Initializing ${yellow(issuer.config.label)}...`)
   await issuer.initialize()
 
   const connectionId = await createConnection(issuer, indySdkHolder)
@@ -45,21 +52,26 @@ void (async () => {
 
   await returnWhenCredentialInWallet(indySdkHolder)
 
+  await log(`Shutting down ${yellow(indySdkHolder.config.label)}...`)
   await indySdkHolder.shutdown()
 
   await migrate(indySdkHolder, sharedComponentsHolder)
 
+  await log(
+    `Initializing ${cyan(
+      sharedComponentsHolder.config.label
+    )} (with shared components)...`
+  )
   await sharedComponentsHolder.initialize()
 
+  await log(`Initializing ${yellow(verifier.config.label)}...`)
   await verifier.initialize()
 
   const cid = await createConnection(verifier, sharedComponentsHolder)
 
   await requestAnoncredsProof(verifier, cid)
 
-  const proof = await returnWhenProofShared(sharedComponentsHolder)
-
-  console.log(proof)
+  await returnWhenProofShared(sharedComponentsHolder)
 
   exit(0)
 })()

@@ -31,7 +31,6 @@ import { bcovrinTestNetwork } from "./constants"
 const name = "issuer"
 const config: InitConfig = {
   label: name,
-  // logger: new NamedConsoleLogger(LogLevel.trace, name, "green"),
   endpoints: ["http://localhost:3001"],
   walletConfig: {
     id: "hyperledger-afj-040-release-workshop-issuer",

@@ -1,3 +1,5 @@
+import { cyan, underscore } from "../utils"
+import { log } from "../utils/log"
 import { Verifier } from "../verifier"
 
 export const requestAnoncredsProof = async (
@@ -9,10 +11,17 @@ export const requestAnoncredsProof = async (
     protocolVersion: "v2",
     proofFormats: {
       anoncreds: {
-        requested_attributes: { group: { name: "a" } },
+        requested_attributes: { identity: { name: "a" } },
         name: "My First Proof Request",
         version: "1",
       },
     },
   })
+
+  log(
+    `Requested ${underscore("Anoncreds")} proof: ${cyan(
+      verifier.config.label
+    )} -> ${underscore(connectionId)}`,
+    false
+  )
 }

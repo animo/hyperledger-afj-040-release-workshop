@@ -1,4 +1,6 @@
 import { Issuer } from "../issuer"
+import { underscore, yellow } from "../utils"
+import { log } from "../utils/log"
 
 export const createAndRegisterCredentialDefinintion = async (
   issuer: Issuer,
@@ -20,6 +22,13 @@ export const createAndRegisterCredentialDefinintion = async (
       `Error creating credential definition: ${credentialDefinitionResult.credentialDefinitionState.reason}`
     )
   }
+
+  await log(
+    `Created ${underscore("credential definition")} with id '${underscore(
+      credentialDefinitionResult.credentialDefinitionState
+        .credentialDefinitionId!
+    )}' for ${yellow(issuer.config.label)}`
+  )
 
   return credentialDefinitionResult.credentialDefinitionState
     .credentialDefinitionId!

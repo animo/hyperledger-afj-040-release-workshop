@@ -5,7 +5,6 @@ import {
   DidsModule,
   HttpOutboundTransport,
   InitConfig,
-  LogLevel,
   ProofsModule,
   V2ProofProtocol,
   WsOutboundTransport,
@@ -28,13 +27,11 @@ import { indyVdr } from "@hyperledger/indy-vdr-nodejs"
 import { anoncreds } from "@hyperledger/anoncreds-nodejs"
 
 import { bcovrinTestNetwork } from "./constants"
-import { NamedConsoleLogger } from "./utils"
 
 const name = "verifier"
 const config: InitConfig = {
   label: name,
   endpoints: ["http://localhost:3010"],
-  logger: new NamedConsoleLogger(LogLevel.trace, name, "green"),
   walletConfig: {
     id: "hyperledger-afj-040-release-workshop-verifier",
     key: "insecure-secret",

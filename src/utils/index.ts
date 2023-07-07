@@ -1,5 +1,5 @@
-export * from "./NamedConsoleLogger"
 export * from "./cleanUpDb"
+export * from "./colors"
 
 export * from "./returnWhenConnected"
 export * from "./returnWhenCredentialInWallet"

@@ -7,7 +7,6 @@ import {
   DidsModule,
   HttpOutboundTransport,
   InitConfig,
-  LogLevel,
   ProofsModule,
   V2CredentialProtocol,
   V2ProofProtocol,
@@ -20,7 +19,6 @@ import { AskarModule } from "@aries-framework/askar"
 import indySdk from "indy-sdk"
 
 import { ariesAskar } from "@hyperledger/aries-askar-nodejs"
-import { NamedConsoleLogger } from "./utils"
 import {
   AnonCredsCredentialFormatService,
   AnonCredsModule,
@@ -40,7 +38,6 @@ const name = "holder"
 const config: InitConfig = {
   label: name,
   endpoints: ["http://localhost:3002"],
-  logger: new NamedConsoleLogger(LogLevel.debug, name, "green"),
   walletConfig: {
     id: "hyperledger-afj-040-release-workshop-holder",
     key: "insecure-secret",
