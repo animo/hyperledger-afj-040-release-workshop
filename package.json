@@ -5,9 +5,7 @@
   "repository": "git@github.com:animo/hyperledger-afj-040-release-workshop.git",
   "author": "Animo Solutions <contact@animo.id>",
   "scripts": {
-    "issuer": "ts-node src/issuer.ts",
-    "holder": "ts-node src/holder.ts",
-    "verifier": "ts-node src/verifier.ts"
+    "start": "ts-node src/index.ts"
   },
   "license": "Apache-2.0",
   "devDependencies": {
