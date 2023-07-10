@@ -36,8 +36,6 @@ void (async () => {
   await log(`Initializing ${yellow(issuer.config.label)}...`)
   await issuer.initialize()
 
-  const connectionId = await createConnection(issuer, indySdkHolder)
-
   const issuerDid = await createAndRegisterDidIndy(issuer)
 
   const schemaId = await createAndRegisterSchema(issuer, issuerDid)
@@ -47,6 +45,8 @@ void (async () => {
     issuerDid,
     schemaId
   )
+
+  const connectionId = await createConnection(issuer, indySdkHolder)
 
   await offerAnoncredsCredential(issuer, connectionId, credentialDefinitionId)
 

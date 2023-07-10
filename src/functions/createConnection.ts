@@ -11,7 +11,6 @@ export const createConnection = async (sender: Agent, recipient: Agent) => {
 
   const hrwc = returnWhenConnected(recipient, id)
   const irwc = returnWhenConnected(sender, outOfBandRecord.id)
-
   const [, connectionId] = await Promise.all([hrwc, irwc])
 
   await log(

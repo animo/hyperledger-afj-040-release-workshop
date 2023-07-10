@@ -5,9 +5,9 @@ import { log } from "../utils/log"
 export const createAndRegisterSchema = async (issuer: Issuer, did: string) => {
   const schemaResult = await issuer.modules.anoncreds.registerSchema({
     schema: {
-      attrNames: ["a"],
+      attrNames: ["name", "lastname"],
       issuerId: did,
-      name: `Example credential`,
+      name: `Identity Example`,
       version: `1.0.${Math.floor(Math.random() * 1000)}`,
     },
     options: {},

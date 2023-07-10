@@ -13,7 +13,10 @@ export const offerAnoncredsCredential = async (
     credentialFormats: {
       anoncreds: {
         credentialDefinitionId,
-        attributes: [{ name: "a", value: "b" }],
+        attributes: [
+          { name: "name", value: "Jane" },
+          { name: "lastname", value: "Doe" },
+        ],
       },
     },
   })

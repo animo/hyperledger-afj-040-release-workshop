@@ -11,9 +11,9 @@ export const requestAnoncredsProof = async (
     protocolVersion: "v2",
     proofFormats: {
       anoncreds: {
-        requested_attributes: { identity: { name: "a" } },
-        name: "My First Proof Request",
-        version: "1",
+        requested_attributes: { identity: { names: ["name", "lastname"] } },
+        name: "Attendance Identity",
+        version: "2",
       },
     },
   })
