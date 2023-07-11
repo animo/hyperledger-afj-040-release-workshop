@@ -12,7 +12,7 @@ import {
   V2ProofProtocol,
   WsOutboundTransport,
 } from "@aries-framework/core"
-import { IndySdkModule } from "@aries-framework/indy-sdk"
+import { IndySdkAnonCredsRegistry, IndySdkIndyDidResolver, IndySdkModule } from "@aries-framework/indy-sdk"
 import { HttpInboundTransport, agentDependencies } from "@aries-framework/node"
 import { AskarModule } from "@aries-framework/askar"
 
@@ -45,19 +45,12 @@ const config: InitConfig = {
 }
 
 const indySdkModules = {
-  indySdk: new IndySdkModule({ indySdk }),
+  indySdk: new IndySdkModule({ indySdk, networks: [bcovrinTestNetwork], }),
   anoncreds: new AnonCredsModule({
-    registries: [new IndyVdrAnonCredsRegistry()],
-  }),
-  anoncredsRs: new AnonCredsRsModule({
-    anoncreds,
+    registries: [new IndySdkAnonCredsRegistry()],
   }),
   dids: new DidsModule({
-    resolvers: [new IndyVdrIndyDidResolver()],
-  }),
-  indyVdr: new IndyVdrModule({
-    indyVdr,
-    networks: [bcovrinTestNetwork],
+    resolvers: [new IndySdkIndyDidResolver()],
   }),
   connections: new ConnectionsModule({ autoAcceptConnections: true }),
   credentials: new CredentialsModule({
