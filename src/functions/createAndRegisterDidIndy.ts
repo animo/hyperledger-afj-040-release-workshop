@@ -19,7 +19,9 @@ export const createAndRegisterDidIndy = async (issuer: Issuer) => {
     ],
   })
 
-  await log(`Created did '${underscore(indyDid)}' for ${yellow(issuer.config.label)}`)
+  await log(
+    `Created did '${underscore(indyDid)}' for ${yellow(issuer.config.label)}`
+  )
 
   return indyDid
 }

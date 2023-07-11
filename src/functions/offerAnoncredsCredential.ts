@@ -7,6 +7,9 @@ export const offerAnoncredsCredential = async (
   connectionId: string,
   credentialDefinitionId: string
 ) => {
+  const dob = new Date()
+  dob.setFullYear(new Date().getFullYear() - 25)
+
   await issuer.credentials.offerCredential({
     protocolVersion: "v2",
     connectionId,
@@ -14,8 +17,13 @@ export const offerAnoncredsCredential = async (
       anoncreds: {
         credentialDefinitionId,
         attributes: [
-          { name: "name", value: "Jane" },
-          { name: "lastname", value: "Doe" },
+          { name: "name", value: "John Doe" },
+          {
+            name: "date of birth",
+            value: dob.toISOString(),
+          },
+          { name: "email", value: "jane@anoncreds.ltd" },
+          { name: "occupation", value: "Credential Influencer" },
         ],
       },
     },
