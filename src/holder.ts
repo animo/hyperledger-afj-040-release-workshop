@@ -45,7 +45,7 @@ const config: InitConfig = {
 }
 
 const indySdkModules = {
-  indySdk: new IndySdkModule({ indySdk }),
+  indySdk: new IndySdkModule({ indySdk, networks: [bcovrinTestNetwork], }),
   anoncreds: new AnonCredsModule({
     registries: [new IndySdkAnonCredsRegistry()],
   }),
