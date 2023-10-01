@@ -1,4 +1,4 @@
-export const log = async (s: string, wait = true) => {
+export const log = async (s: string, wait = false) => {
   console.log(`${s}\n`)
   if (wait) await keypress()
 }
